@@ -10,7 +10,7 @@ public class GpioPin {
 	private String address;
 
 	public static enum Direction {
-		in,out
+		in, out
 	}
 
 	public GpioPin(String gpioAddress) {
@@ -24,15 +24,18 @@ public class GpioPin {
 	}
 
 	public boolean getValue() {
-		return true;
+		if (isPinExported()) {
+			return readFromFile("/sys/class/gpio/gpio" + address + "/value").equals("1");
+		}
+		return false;
 	}
 
 	public boolean setValue(boolean value) {
 		if (isPinExported()) {
-			if(value){
-				return writeToFile("/sys/class/gpio/gpio" + address + "/value","1");	
+			if (value) {
+				return writeToFile("/sys/class/gpio/gpio" + address + "/value", "1");
 			}
-			return writeToFile("/sys/class/gpio/gpio" + address + "/value","0");
+			return writeToFile("/sys/class/gpio/gpio" + address + "/value", "0");
 		}
 		return false;
 	}
@@ -53,15 +56,15 @@ public class GpioPin {
 
 	private boolean setDirection(Direction direction) {
 		if (isPinExported()) {
-			return writeToFile("/sys/class/gpio/gpio"+address+"/direction", direction.toString());
+			return writeToFile("/sys/class/gpio/gpio" + address + "/direction", direction.toString());
 		}
 		return false;
 	}
 
 	private boolean isPinExported() {
-		return !readFromFile("/sys/class/gpio/gpio"+address+"/direction").equals("ERROR");
+		return !readFromFile("/sys/class/gpio/gpio" + address + "/direction").equals("ERROR");
 	}
-	
+
 	private boolean writeToFile(String fileName, String value) {
 		PrintWriter zapis;
 		try {
@@ -95,5 +98,5 @@ public class GpioPin {
 		}
 		return result;
 	}
-	
+
 }
