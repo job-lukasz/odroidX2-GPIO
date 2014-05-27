@@ -2,7 +2,10 @@ package gpio;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
+import static gpio.StaticValues.*;
 /*
 __________
 |1		2 |
@@ -33,23 +36,10 @@ __________
 ___________
 */
 //GPIO Singleton
+
 public enum GPIO {
 	INSTANCE;
-	public enum OdroidX2PIN{PIN17, PIN18, 
-							 PIN19, PIN20,
-							 PIN21, PIN22,
-							 PIN23, PIN24,
-							 PIN25, PIN26,
-							 PIN27, PIN28,
-							 PIN29, PIN30,
-							 PIN31,
-							 PIN33, PIN34,
-							 PIN35, PIN36,
-							 PIN37, PIN38,
-							 PIN39, PIN40,
-							 PIN41, PIN42,
-							 PIN43, PIN44,
-							 PIN45};
+	
 	public final static Map<OdroidX2PIN,String> pinMap;
 	static {
 		Map<OdroidX2PIN, String> tempMap = new HashMap<OdroidX2PIN, String>();
@@ -83,8 +73,8 @@ public enum GPIO {
 		tempMap.put(OdroidX2PIN.PIN45, "109");
 		pinMap = Collections.unmodifiableMap(tempMap);
 	}
-	private Map<OdroidX2PIN, GpioPin> openedPins = new HashMap<GPIO.OdroidX2PIN, GpioPin>();
-	private Map<OdroidX2PIN, GPIO_PWM> pwmPins = new HashMap<GPIO.OdroidX2PIN, GPIO_PWM>();
+	private Map<OdroidX2PIN, GpioPin> openedPins = new HashMap<OdroidX2PIN, GpioPin>();
+	private Map<OdroidX2PIN, GPIO_PWM> pwmPins = new HashMap<OdroidX2PIN, GPIO_PWM>();
 	
 	public void setHigh(OdroidX2PIN odroidPin){
 		openPin(odroidPin);
@@ -98,8 +88,27 @@ public enum GPIO {
 
 	public void setPWM(OdroidX2PIN odroidPin, long high_microS, long freq_microS){
 		openPin(odroidPin);
+		if(pwmPins.containsKey(odroidPin)){
+			pwmPins.get(odroidPin).stop();
+			pwmPins.remove(odroidPin);
+		}
 		pwmPins.put(odroidPin, new GPIO_PWM(freq_microS, high_microS, openedPins.get(odroidPin)));
 		pwmPins.get(odroidPin).run();
+	}
+	
+	public void closeAllPins(){
+		Iterator<Entry<OdroidX2PIN, GPIO_PWM>> iterator= pwmPins.entrySet().iterator();
+		while(iterator.hasNext()){
+			Entry<OdroidX2PIN, GPIO_PWM> temp = iterator.next();
+			temp.getValue().stop();
+		}
+		Iterator<Entry<OdroidX2PIN, GpioPin>> pinsIterator= openedPins.entrySet().iterator();
+		while(pinsIterator.hasNext()){
+			Entry<OdroidX2PIN, GpioPin> temp = pinsIterator.next();
+			temp.getValue().close();
+		}
+		pwmPins.clear();
+		openedPins.clear();
 	}
 	
 	private void openPin(OdroidX2PIN odroidPin) {
