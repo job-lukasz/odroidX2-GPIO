@@ -7,11 +7,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 public class GpioPin {
-	private String address;
-
 	public static enum Direction {
 		in, out
 	}
+	
+	private String address;
+	private Direction direction;
+
 
 	public GpioPin(String gpioAddress) {
 		address = gpioAddress;
@@ -97,6 +99,14 @@ public class GpioPin {
 			}
 		}
 		return result;
+	}
+
+	public Direction getDir() {
+		return direction;
+	}
+
+	public void setDir(Direction dir) {
+		this.direction = dir;
 	}
 
 }
